@@ -20,107 +20,116 @@
 #include <unistd.h>
 #include <getopt.h>
 
+
 // Constants
-#define caesar(x, y) rot(13, y)
-#define decaesar(x, y) rot((26 - 13), y)
+#define ENCRYPT 0
+#define DECRYPT 1
+#define viegner(x, y) rot(ENCRYPT, x, y)
+#define deviegner(x, y) rot(DECRYPT, x, y)
 
 // Function prototypes
+void rot(int z, char *shifer, char *str);
 void remove_newline_ch(char *line);
-void rot(int c, char *str);
+int get_shift_num(char d);
 void print_usage(char *argv[]);
-int get_num_of_shift(char arr[]);
+
 
 int main(int argc, char *argv[]) {
-    
-    //int decrypt = 0;
-    //int encrypt = 0;
-    //int shiffer = 0;
 
+    int decrypt = 0;
+    int encrypt = 0;
+    char *shiffer;
 
-    
+    if (argc != 3) {
+        //fprintf(stderr, "You need to give 1 arguments\n");
+        print_usage(argv);
+        return 1;
+    }
 
-    
-    char str[80] = "Caspar is cool!";	
-    //printf("Enter sentence: ");
-    //fgets(str, sizeof(str), stdin);
-    //remove_newline_ch(str);
+    char ch;
+    while ((ch = getopt(argc, argv, "des:")) != EOF)
 
-    printf("Tell me an shffer: ");
-    char shiffer[80] = "hello";
-    // scanf("%s", shiffer);
-
-    int i;
-    int j = 0;
-
-    char shiffer_string[80];
-
-    for (i = 0; str[i] != '\0'; i++) {
-        
-        if (tolower(str[i]) >= 97 && tolower(str[i]) < 122) {
-        
-            shiffer_string[i] = shiffer[j];
-            j++;
+        switch (ch) {
+            case 'd':
+                decrypt = 1;
+                break;
+            case 'e':
+                encrypt = 1;
+                break;
+            case 's':
+                shiffer = strdup(optarg);
+                break;
+            default:
+                fprintf(stderr, "Unknown option '%s'\n", optarg);
+                return 1;
         }
-        else {
-            
-            shiffer_string[i] = str[i];
-        }
-     
-        
-        if (shiffer[j] == '\0') 
-            j = 0;
 
+    char str[180];
+    printf("Enter sentence: ");
+    fgets(str, sizeof(str), stdin);
+    remove_newline_ch(str);
 
+    if (encrypt) {
+        viegner(shiffer, str);
+        printf("Encrypted: %s\n", str);
     }
 
-    puts("++++++++++++++++++");
-
-    for (i = 0; shiffer_string[i] != '\0'; i++) {
-        
-        printf("%c", shiffer_string[i]);
+    else if (decrypt) {
+        deviegner(shiffer, str);
+        printf("Decrypted: %s\n", str);
     }
-    puts("");
-
-    for (i = 0; str[i] != '\0'; i++) {
-        
-        printf("%c", str[i]);
+    else {
+        printf("Original: %s\n", str);
     }
-    puts("");
-
 
 	return 0;
 }
 
 
-int get_num_of_shift(char arr[]) {
-
-    int temp;
-    
-    const char *alpha[] = {"abcdefghijklmnopqrstuvwxyz"};
-    
-
-    return temp;
-
-
-}
-
-void rot(int c, char *str)
+void rot(int z, char *shifer, char *str)
 {
+
 	int l = strlen(str);
 	const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-        int index = 0;
-	int i;
+  int index = 0;
+  int count = 0;
+  int i, c;
+
 	for (i = 0; i < l; i++)
 	{
 		if (!isalpha(str[i]))
 			continue;
-			
+
 		if (isupper(str[i]))
 			index = 1;
 
+      if (z) {
+        c = (26 - get_shift_num(shifer[count]));
+      } else {
+        c = get_shift_num(shifer[count]);
+      }
+
 		str[i] = alpha[index][((int)(tolower(str[i])-'a')+c)%26];
 		index = 0;
+    count++;
+    if (shifer[count] == '\0') {
+        count = 0;
+    }
 	}
+}
+
+int get_shift_num(char d) {
+
+  int temp = 0;
+  const char alpha[] = {"abcdefghijklmnopqrstuvwxyz"};
+  int i;
+  for (i = 0; i < strlen(alpha); i++) {
+    if (tolower(d) == alpha[i]) {
+      temp = i;
+      break;
+    }
+  }
+  return temp;
 }
 
 void remove_newline_ch(char *line)
@@ -130,3 +139,13 @@ void remove_newline_ch(char *line)
         line[new_line] = '\0';
 }
 
+void print_usage(char *argv[]) {
+
+    printf("Usage: %s [option][shiffer]\n", argv[0]);
+    printf("\nOptions:\n\n");
+    printf(" -h\t\t Print usage\n");
+    printf(" -d\t\t Decrypt the message\n");
+    printf(" -e\t\t Encrypt the message\n");
+    printf(" -s\t\t shiffer\n");
+
+}
