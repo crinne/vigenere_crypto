@@ -1,2 +1,2 @@
 # vigenere_crypto
-vigenere_crypto
+Vigenere_crypto
